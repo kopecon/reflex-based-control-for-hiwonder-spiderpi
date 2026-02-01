@@ -1,0 +1,79 @@
+# Reflex-Based Control for the Hiwonder SpiderPi
+
+Bio-inspired robotic locomotion project focused on implementing a **pure reflex-based control architecture** inside a physical hexapod robot.
+
+Originally developed as a **COLABS research project at Tohoku University** within the Neuro-Robotics laboratory during an academic exchange program, this work later evolved into my **Master’s thesis**.
+
+---
+
+## Project Summary
+
+This project explores how biological principles — specifically the locomotion mechanisms of the **stick insect** — can be translated into practical robotic control systems.
+Instead of relying on computationally heavy centralized planning, the robot is controlled through a decentralized reflex architecture designed to produce adaptive and stable walking behavior.
+The control system was implemented and tested on the **Hiwonder SpiderPi**, a Raspberry Pi–powered hexapod platform commonly used for robotics research and motion-control experimentation.
+
+---
+
+## Why This Project Matters
+
+Legged robots must operate in unpredictable environments where precomputed motion often fails. Biological organisms solve this through local reflex loops rather than global planning.
+
+This research investigates whether:
+
+- Simple reflex rules can generate robust locomotion  
+- Bio-inspired control can reduce computational overhead  
+- Decentralized architectures improve adaptability  
+
+---
+
+## Key Achievements
+
+- Designed and implemented a **pure reflex-based locomotion controller**
+- Translated biological research into an operational robotic system
+- Integrated control algorithms directly with physical hardware
+- Tuned behavioral parameters to shape gait and stability
+- Built tooling for visualization and real-time analysis
+- Conducted experimental validation on a six-legged robot
+
+---
+
+## Technical Highlights
+
+### Control Architecture
+- No external control
+- Robot executes autonomous forward locomotion
+- Decentralized reflex loops  
+- Behavior-driven gait generation  
+
+### Robotics & Systems Work
+- Hardware-software integration  
+- Sensor data processing  
+- State estimation (Kalman filtering)  
+- Morphology-aware control modeling  
+
+### Engineering Tooling
+- Real-time graphing utilities  
+- Plotly-based visualization  
+- Modular class-based system design  
+
+---
+
+## Repository Structure
+
+```
+.
+├── HiwonderSDK/                # Robot SDK and hardware interfaces
+├── control_system_class.py     # Core reflex control architecture
+├── control_system_prototypes.py  # Different control strategies and their iterations
+├── hexapod_class.py           # Robot abstraction layer
+├── morphology_class.py        # Physical model setting
+├── kalman_filter.py           # Voltage measurement noise reduction
+├── real_time_graph_class.py   # Real time data visualization (mainly for debugging)
+└── plotly_graph_generator.py  # Interactive data visualization
+```
+
+---
+
+## Hardware Platform
+Hiwonder SpiderPI: www.hiwonder.com/products/spiderpi?srsltid=AfmBOopWUBNW1bQtsxNgazfhdu0a1N0oU5pFiGPVsg-adVIJEMEdxuGf
+---

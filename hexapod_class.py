@@ -33,16 +33,17 @@ class Joint:
     max_position = 1000  # +120 deg
 
     def __init__(self, parent, servo_id, joint_type):
-        
+
         # Servo ID parameters
         self.parent = ref(parent)  # Joints parent is the corresponding leg
         self.hexapod = self.parent().parent  # Create a reference to the hexapod to access its variables
         self.servo_id = servo_id  # int from 1 to 18 unique per servo
         self.type = joint_type  # Shoulder/Knee/Paw
         self.name = f'{parent.name} {joint_type}'  # Example: "RF Shoulder" (Right Front Shoulder)
-        self.side = parent.name[0]  # Its either R or L depending on the leg name. Used to separate left leg from right leg joints
+        self.side = parent.name[
+            0]  # Its either R or L depending on the leg name. Used to separate left leg from right leg joints
         self.platform = sys.platform  # Check if code ran on PC or RBpi ... for debugging purposes
-        
+
         # Servo control parameters at first inherited from hexapod, but possible to tweak subjectively
         self.theta = self.hexapod().theta  # Integer (0<theta<~150). How far the shoulder moves during Swing/Stance.
         self.speed = self.hexapod().speed  # How long it takes in [ms] for servo to reach the desired position.
@@ -55,7 +56,7 @@ class Joint:
         self.stance_slowing_factor = self.hexapod().stance_slowing_factor  # Slow the servo speed during the "ST" phase to compensate leg slipping.
         self.kalman_R = self.hexapod().kalman_R  # Adjust the aggressiveness of voltage measurement noise filtering
         self.optimal_position = self.hexapod().optimal_position  # Optimal Knee servo angle to improve stability and reduce tilt.
-        
+
         # Servo data parameters
         self.position_history = []  # Record servo position
         self.voltage_history = []  # Record servo voltage
@@ -66,12 +67,12 @@ class Joint:
         # Windowing (To prevent crashing or movement stopping)
         self.writing = False  # If TRUE -> Servo cant read data
         self.reading = False  # If TRUE -> Servo cant move
-        
+
         # Servos children
         self.filter = Kalman(self, Board.getBusServoVin(servo_id))  # Voltage measurement noise filter
         self.graph = None  # Graph enabling to view joint data in real time.
         # But there is some issue with RPi... if using the matplotlib -> unable to save the joint data by "pickle"
-        
+
         # Initial servo diagnose (to have reference values for the first run)
         self.diagnose(track=True)
 
@@ -135,15 +136,16 @@ class Joint:
 
         # The joint is pushing too much -> make it push less
         if self.position_history[-1] < self.optimal_position:
-            new_threshold = old_threshold - diff*0.05  # factor 0.05 can be adjusted manually
+            new_threshold = old_threshold - diff * 0.05  # factor 0.05 can be adjusted manually
 
         # The joint is not pushing enough -> make it push more
         if self.position_history[-1] > self.optimal_position:
-            new_threshold = old_threshold + diff*0.05  # factor 0.05 can be adjusted manually
+            new_threshold = old_threshold + diff * 0.05  # factor 0.05 can be adjusted manually
 
         # Adjust voltage only for knee servos.
         if self.type == "Knee":
-            self.down_v_threshold = np.clip(round(new_threshold), 25, 40)  # Clipping values can be changed - these are my best
+            self.down_v_threshold = np.clip(round(new_threshold), 25,
+                                            40)  # Clipping values can be changed - these are my best
             # print(f"{self.name} {self.down_v_threshold}")
 
     def _get_position(self, track=False) -> int:
@@ -206,7 +208,7 @@ class Joint:
         current_voltage = self._get_voltage(track=track)
         if track:
             self.state_history.append(self.parent().state)
-        self.diagnose_times.append(time.time()-self.start_time)
+        self.diagnose_times.append(time.time() - self.start_time)
         return current_position, current_voltage
 
     def set_position(self, theta: int, speed=None):
@@ -249,7 +251,8 @@ class Joint:
         if direction != 'up' and direction != 'down':
             raise AttributeError('Wrong direction value. Try: "up" or "down"')
 
-        voltage_reference = self.voltage_history[-1][1]  # Get the voltage before moving to compare and see the voltage difference.
+        voltage_reference = self.voltage_history[-1][
+            1]  # Get the voltage before moving to compare and see the voltage difference.
 
         if direction == 'down':
             theta = 300  # Lowest position limit -> could be 0
@@ -268,7 +271,8 @@ class Joint:
             time.sleep(0.0001)  # Recovery time
             if voltage_dif >= threshold:
                 if self.parent().name == 'LF':
-                    print(f"{self.name} {direction}: {voltage_dif}/{threshold}... Switching State from {self.parent().state}")
+                    print(
+                        f"{self.name} {direction}: {voltage_dif}/{threshold}... Switching State from {self.parent().state}")
                 self.set_position(current_position)  # Stop the servo at the current position
                 return
 
@@ -314,7 +318,7 @@ class Leg:
         self.knee = Joint(self, knee[0], knee[1])  # Knee joint servo id
         self.paw = Joint(self, paw[0], paw[1])  # Paw joint servo id
         self.joints = (self.shoulder, self.knee, self.paw)  # Tuple of leg joints.
-        
+
     def __repr__(self) -> str:
         """
         This method is called when trying to print the leg object. Example: print(hexapod.rf) outputs "message"
@@ -417,7 +421,7 @@ class Hexapod:
         self.morphology = mc.leg_initializer(self)
         self.all_joints = []
         self.history = []
-        
+
         self.rf = Leg(self, rf[0], rf[1], rf[2], rf[3])  # Right front leg
         self.rm = Leg(self, rm[0], rm[1], rm[2], rm[3])  # Right middle leg
         self.rh = Leg(self, rh[0], rh[1], rh[2], rh[3])  # Right hind leg
@@ -425,10 +429,10 @@ class Hexapod:
         self.lm = Leg(self, lm[0], lm[1], lm[2], lm[3])  # Left middle leg
         self.lh = Leg(self, lh[0], lh[1], lh[2], lh[3])  # Left hind leg
         self.all_legs = (self.lh, self.lm, self.lf, self.rh, self.rm, self.rf)
-        
+
         self.start_time = time.time()
         self.run_personal_comment = None
-        
+
         # Gather all joints in one list
         for leg in self.all_legs:
             for joint in leg.joints:
@@ -658,10 +662,9 @@ class Constructor:
 
 
 if __name__ == '__main__':
-
-    # Construct 
+    # Construct
     hexapod = Constructor.construct_hexapod()
-    
+
     hexapod.set_control_system(cs.ReflexBased)
 
     hexapod.set_init_config(mc.OPT)
@@ -694,7 +697,7 @@ if __name__ == '__main__':
     hexapod.optimal_position = 625
 
     hexapod.update_joints_parameters()
-    
+
     input("Press ENTER to Start")
     print("""
 ------------------------  START MOVING  -------------------------

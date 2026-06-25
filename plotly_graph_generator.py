@@ -184,23 +184,18 @@ def complete_joint_overview(joints: list, hexapod):
         joint.voltage_history.pop(0)
         joint.state_history.pop(0)
 
-    all_positions = []
-    all_raw_voltages = []
-    all_filtered_voltages = []
-    all_states = []
-
     _create_run_parameters_txt(this_run_path, hexapod, joints)
     _create_raw_data_txt(this_run_path, joints)
     _footfall_pattern_graph(this_run_path, joints, hexapod.morphology)
 
     # Iterate over every joint.
     for n, joint in enumerate(joints):
-        if joint.name == "LF Knee" or joint.name == "LF Shoulder":
+        # FIX 1: Changed from hardcoded "LF Knee" to allow ALL Knees and Shoulders across all legs
+        if joint.type == "Knee" or joint.type == "Shoulder":
             print(f"Plotting {joint.name} plot...")
             t = [i for i in joint.diagnose_times]
-            all_positions.append(joint.position_history)
-            all_states.append(joint.state_history)
-            # Plot the current joint in the figure
+
+            # Plot the current joint position in Row 1
             fig.add_trace(go.Scatter(
                 x=t,
                 y=joint.position_history,
@@ -213,21 +208,17 @@ def complete_joint_overview(joints: list, hexapod):
                 legendgroup=n,
                 textfont=dict(color=cols[n % col_l])
             ), row=1, col=1)
-            fig.update_xaxes(title_text="Time [s]", row=1, col=1)
-            fig.update_yaxes(title_text="Positions [-]", row=1, col=1)
 
             raw_voltage = [i[0] for i in joint.voltage_history]
             filtered_voltage = [i[1] for i in joint.voltage_history]
-            all_raw_voltages.append(raw_voltage)
-            all_filtered_voltages.append(filtered_voltage)
 
-            # Plot the current joint in the figure
+            # Plot Raw Voltage in Row 2 (with distinct suffix for dynamic identification)
             fig.add_trace(go.Scatter(
                 x=t,
                 y=raw_voltage,
                 line=dict(color=cols[n % col_l]),
                 mode="lines+markers",
-                name=f"{joint.name} V",
+                name=f"{joint.name} V Raw",
                 text=joint.state_history,
                 textposition="top center",
                 visible="legendonly",
@@ -236,25 +227,24 @@ def complete_joint_overview(joints: list, hexapod):
                 textfont=dict(color=cols[n % col_l])
             ), row=2, col=1)
 
+            # Plot Filtered Voltage in Row 2 (with distinct suffix for dynamic identification)
             fig.add_trace(go.Scatter(
                 x=t,
                 y=filtered_voltage,
                 line=dict(color=cols[(n + 5) % col_l]),
                 mode="lines+markers",
-                name=f"{joint.name} V",
+                name=f"{joint.name} V Filtered",
                 visible="legendonly",
                 showlegend=False,
                 legendgroup=n,
             ), row=2, col=1)
-
-            fig.update_xaxes(title_text="Steps", row=1, col=1)
-            fig.update_yaxes(title_text="Voltages [mV]", row=2, col=1)
 
             leg_states = _process_leg_states(joint)
             color = {"TD": "lightcyan",
                      "ST": "lightcoral",
                      "LO": "papayawhip",
                      "SW": "indigo"}
+
             # Generate color background based on state
             if leg_states is not None:
                 for item in leg_states:
@@ -263,59 +253,77 @@ def complete_joint_overview(joints: list, hexapod):
                         fillcolor=color[item[2]], opacity=0.5,
                         layer="below", line_width=0,
                         label=dict(text=item[2], textposition="top center"),
-                        visible="legendonly", legendgroup=n, showlegend=True
-                    ),
+                        visible="legendonly", legendgroup=n, showlegend=False
+                    )
 
-        fig.update_layout(
-            title=f'Morphology: {hexapod.morphology.name} - {title}',
-            legend_title="Legs:",
-            font=dict(family="Courier New, monospace", size=18, color=cols[0]),
-            template='ggplot2')
+    # Global Axis Formatting
+    fig.update_xaxes(title_text="Time [s]", row=1, col=1)
+    fig.update_yaxes(title_text="Positions [-]", row=1, col=1)
+    fig.update_xaxes(title_text="Steps", row=2, col=1)
+    fig.update_yaxes(title_text="Voltages [mV]", row=2, col=1)
 
-        # Add dropdown
-        fig.update_layout(updatemenus=[
-            dict(
-                type="buttons",
-                direction="left",
-                buttons=list([dict(
-                    args=[{"y": [all_positions[0],
-                                 all_raw_voltages[0],
-                                 all_filtered_voltages[0],
-                                 ]}],
+    fig.update_layout(
+        title=f'Morphology: {hexapod.morphology.name} - {title}',
+        legend_title="Legs:",
+        font=dict(family="Courier New, monospace", size=18, color=cols[0]),
+        template='ggplot2')
+
+    # --- FIX 2: DYNAMIC DROPDOWN GENERATION OUTSIDE THE LOOP ---
+    raw_indices, filt_indices = [], []
+    raw_y_data, filt_y_data = [], []
+    null_raw_y, null_filt_y = [], []
+
+    # Map indices and cache data arrays dynamically for all active traces
+    for i, trace in enumerate(fig.data):
+        if trace.name and trace.name.endswith(" V Raw"):
+            raw_indices.append(i)
+            raw_y_data.append(trace.y)
+            null_raw_y.append([None] * len(trace.y))
+        elif trace.name and trace.name.endswith(" V Filtered"):
+            filt_indices.append(i)
+            filt_y_data.append(trace.y)
+            null_filt_y.append([None] * len(trace.y))
+
+    target_indices = raw_indices + filt_indices
+
+    # Define the precise layout behavior states
+    y_both = raw_y_data + filt_y_data
+    y_filt_only = null_raw_y + filt_y_data
+    y_raw_only = raw_y_data + null_filt_y
+
+    fig.update_layout(updatemenus=[
+        dict(
+            type="buttons",
+            direction="left",
+            buttons=list([
+                dict(
+                    args=[{"y": y_both}, target_indices],
                     label="Both",
-                    method="update"
+                    method="restyle"
                 ),
-                    dict(
-                        args=[{"y": [all_positions[0],
-                                     all_filtered_voltages[0],
-                                     all_filtered_voltages[0],
-                                     ]}],
-                        label="Filtered Voltage",
-                        method="update"
-                    ),
-                    dict(
-                        args=[{"y": [all_positions[0],
-                                     all_raw_voltages[0],
-                                     all_raw_voltages[0],
-                                     ]}],
-                        label="Raw Voltage",
-                        method="update"
-                    ),
+                dict(
+                    args=[{"y": y_filt_only}, target_indices],
+                    label="Filtered Voltage",
+                    method="restyle"
+                ),
+                dict(
+                    args=[{"y": y_raw_only}, target_indices],
+                    label="Raw Voltage",
+                    method="restyle"
+                ),
+            ]),
+            pad={"r": 10, "t": 10},
+            showactive=True,
+            x=0,
+            xanchor="left",
+            y=-0.1,
+            yanchor="top"
+        )
+    ])
 
-                ]),
-                pad={"r": 10, "t": 10},
-                showactive=True,
-                x=0,
-                xanchor="left",
-                y=-0.1,
-                yanchor="top"),
-        ])
     title = f"{this_run_path}/{title}.html"
-    # Save the figure as ".html" file and enable zooming by mouse wheel
     fig.write_html(title, config={'scrollZoom': True})
     return title
-
-    # fig.show(config={'scrollZoom': True})  # Uncomment to open the created figure'''
 
 
 def _footfall_pattern_graph(this_run_path, joints, morphology):

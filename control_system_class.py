@@ -3,6 +3,8 @@ import threading
 import time
 from weakref import ref
 
+# For pickle purposes (older runs)
+from control_system_prototypes import RB_independent_v9
 
 class ControlSystem:
     name = 'Control System Static Class'

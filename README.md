@@ -42,7 +42,8 @@ The architecture directly addresses key challenges in real-world motion control 
 > W. Sato, J. Nishii, M. Hayashibe, and D. Owaki, *"Morphological characteristics that enable stable and efficient
 walking in hexapod robot driven by reflex-based intra-limb coordination,"* in **2023 IEEE International Conference on
 Robotics and Automation (ICRA)**, 2023, pp.
-> 12,127–12,133. [Available on ResearchGate](https://www.researchgate.net/publication/372127136_Morphological_Characteristics_That_Enable_Stable_and_Efficient_Walking_in_Hexapod_Robot_Driven_by_Reflex-based_Intra-limb_Coordination)
+>
+12,127–12,133. [Available on ResearchGate](https://www.researchgate.net/publication/372127136_Morphological_Characteristics_That_Enable_Stable_and_Efficient_Walking_in_Hexapod_Robot_Driven_by_Reflex-based_Intra-limb_Coordination)
 
 * **4-Phase State Machine:** Implemented a decentralized intra-limb gait cycle consisting of **Touch Down (TD)**, *
   *Stance (St)**, **Lift Off (LO)**, and **Swing (Sw)** phases.
@@ -80,7 +81,8 @@ Robotics and Automation (ICRA)**, 2023, pp.
 ![Stick Insect](Assets/stick_insect.gif)
 ![Stick Insect](Assets/test_run_opt.gif)
 
-Interactive measured data. Click the link below to zoom, pan, and toggle individual leg joints or filter out voltage noise in real-time.
+Interactive measured data. Click the link below to zoom, pan, and toggle individual leg joints or filter out voltage
+noise in real-time.
 
 <p align="center">
   <a href="https://kopecon.github.io/reflex-based-control-for-hiwonder-spiderpi/" target="_blank">
@@ -124,13 +126,29 @@ physical balance:
 ![Hiwoder Spider Pi](Assets/hiwoder_spider_pi.png)
 > **The structural design and platform guidelines are based on the SpiderPi platform:**
 > Hiwonder, *"Hiwonder SpiderPi: AI Intelligent Visual Hexapod Robot Powered by Raspberry Pi 5,"* Product
-> Specification & Documentation,2024. [Available on Hiwonder](https://www.hiwonder.com/products/spiderpi?variant=40213126381655)
+> Specification &
+> Documentation,2024. [Available on Hiwonder](https://www.hiwonder.com/products/spiderpi?variant=40213126381655)
 
 The framework was validated on the **Hiwonder SpiderPi** utilizing:
 
 * **Central Processing Unit:** Raspberry Pi 4B acting as the real-time control node.
 * **Actuation Layer:** 18x Hiwonder LX-224HV High-Voltage Bus Servos communicating over a TTL UART Serial bus interface.
 * **Power Delivery:** 11.1V 2500mAh 10C LiPo Battery.
+
+---
+
+## Installation
+
+> [!IMPORTANT]
+> This framework is designed specifically for the Hiwonder SpiderPi hardware platform. However, it features a built-in
+> Simulation Mode that allows you to run the entire application locally on your PC without physical hardware. When run
+> offline, the system automatically generates synthetic data streams to simulate robot data.
+
+1) Clone this repository: git
+   clone [https://github.com/kopecon/reflex-based-control-for-hiwonder-spiderpi.git](https://github.com/kopecon/reflex-based-control-for-hiwonder-spiderpi.git)
+2) Set your python interpreter (Python 3.14.0)
+3) Open terminal and navigate to the directory containing the "pyproject.toml".
+4) In the terminal run: pip install . (or for developer mode: pip install -e . )
 
 ---
 *Maintained by kopecon. Developed in partnership with Czech Technical University in Prague and Tohoku University.*
